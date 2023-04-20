@@ -19,10 +19,11 @@ public class BossController : MonoBehaviour
     public float movementSpeed = 5f; // Boss movement speed
     public GameObject projectilePrefab;
 
-    private bool isIdentiSpawned = false;
+
     private float timer = 0f;
     public float timeInterval = 10f; // Interval to call the method
     private SpriteRenderer bossRenderer;
+    bool isAttackRunning = false;
 
 
     // Start is called before the first frame update
@@ -37,19 +38,23 @@ public class BossController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         LookAtPlayer();
 
-        //Boss Mouvement towards the player
-        // Calculate the direction towards the player
-        Vector2 direction = (player.transform.position - transform.position).normalized;
+        if (!isAttackRunning)
+        {
 
-        // Apply a force towards the player
-        rb.AddForce(direction * movementSpeed);
+            //Boss Mouvement towards the player
+            // Calculate the direction towards the player
+            Vector2 direction = (player.transform.position - transform.position).normalized;
 
-        // Clamp the speed so the boss doesn't move too fast
-        rb.velocity = Vector2.ClampMagnitude(rb.velocity, movementSpeed);
+            // Apply a force towards the player
+            rb.AddForce(direction * movementSpeed);
+
+            // Clamp the speed so the boss doesn't move too fast
+            rb.velocity = Vector2.ClampMagnitude(rb.velocity, movementSpeed);
+        }
 
 
         if (APhase == BossAttackPhase.Phase1)
@@ -66,20 +71,13 @@ public class BossController : MonoBehaviour
         }
         else if (APhase == BossAttackPhase.Phase2)
         {
-            // second phase of boss attack
-            if (!isIdentiSpawned)
-            {
-                StartPhase(2);
-            }
+            StartPhase(2);
         }
         else if (APhase == BossAttackPhase.Phase3)
         {
             // third phase of boss attack
-            timer += Time.deltaTime;
-            if (timer >= timeInterval)
-            {
-                StartPhase(3);
-            }
+            StartPhase(3);
+
         }
         else if (APhase == BossAttackPhase.Phase4)
         {
@@ -101,14 +99,24 @@ public class BossController : MonoBehaviour
                 break;
             case 2:
                 // Set up melee attack pattern for phase 2
-                StartCoroutine(MeleeAttack());
+                if (!isAttackRunning) // Check if the coroutine is not already running
+                {
+                    StartCoroutine(MeleeAttack());
+                    isAttackRunning = true; // Set the flag to indicate that the coroutine is running
+                }
                 break;
             case 3:
-                // Set up alternating attack pattern for phase 3
-                StartCoroutine(AlternatingAttacks());
+                // Set up melee attack pattern for phase 2
+                if (!isAttackRunning) // Check if the coroutine is not already running
+                {
+                    // Set up alternating attack pattern for phase 3
+                    StartCoroutine(AlternatingAttacks());
+                    isAttackRunning = true; // Set the flag to indicate that the coroutine is running
+                }
                 break;
             case 4:
                 // Set up special attack pattern for phase 4
+                StopAllCoroutines();
                 projectileParticles.Play(); // Play the particle system
 
                 break;
@@ -153,7 +161,7 @@ public class BossController : MonoBehaviour
     // --Second Phase: charging attack--
 
     public int chargeSpeed = 10;
-    public int knockbackForce = 50;
+    public int knockbackForce = 10;
     public float meleeDamage = 10f;
     public float chargeCooldown;
     public GameObject chargeIndicatorPrefab;
@@ -165,6 +173,9 @@ public class BossController : MonoBehaviour
 
         while (true)
         {
+            // Set the flag to indicate that the coroutine is running
+            isAttackRunning = true;
+
             // Set the boss's color to flashing red
             bossRenderer.material.color = Color.red;
 
@@ -174,10 +185,6 @@ public class BossController : MonoBehaviour
             // Spawn the charge indicator image at the player's position
             GameObject chargeIndicator = Instantiate(chargeIndicatorPrefab, playerPos, Quaternion.identity);
 
-            isIdentiSpawned = true;
-
-            // Wait for 1 second before charging
-            yield return new WaitForSeconds(1f);
 
             // Charge towards the player's position
             Vector2 direction = (playerPos - transform.position).normalized;
@@ -186,36 +193,50 @@ public class BossController : MonoBehaviour
             // Play the charging sound
             audioSource.PlayOneShot(chargingSound);
 
+            // Save the start time
+            float startTime = Time.time;
+
             // Wait until the boss has reached the player's position
-            yield return new WaitUntil(() => Vector2.Distance(transform.position, playerPos) <= 0.1f);
+            yield return new WaitUntil(() => Vector2.Distance(transform.position, playerPos) <= 0.1f || Time.time > startTime + 1f);
 
-            // Stop the boss's movement
-            rb.velocity = Vector2.zero;
-
-            // Check if the boss collided with the player
-            if (isCollidingWithPlayer)
+            if (Time.time > startTime + 1f)
             {
-                // Deal damage to the player
-                player.GetComponent<PlayerHealth>().SetHealth(meleeDamage);
-
-                // Knock back the player
-                player.GetComponent<Rigidbody2D>().AddForce(direction * knockbackForce, ForceMode2D.Impulse);
+                // If the timeout has been reached, stop the boss's movement
+                rb.velocity = Vector2.zero;
             }
 
-            // Destroy the charge indicator image
-            Destroy(chargeIndicator);
+            else
+            {
+                // Check if the boss collided with the player
+                if (isCollidingWithPlayer)
+                {
+                    // Deal damage to the player
+                    player.GetComponent<PlayerHealth>().SetHealth(meleeDamage);
 
-            isIdentiSpawned = false;
+                    // Knock back the player
+                    player.GetComponent<Rigidbody2D>().AddForce(direction * knockbackForce, ForceMode2D.Impulse);
+                }
+
+                // If the timeout has been reached, stop the boss's movement
+                rb.velocity = Vector2.zero;
+
+            }
 
             // Reset the boss's color to white
             bossRenderer.material.color = Color.white;
 
             // Wait for the cooldown before attacking again
             yield return new WaitForSeconds(chargeCooldown);
+
+
+            // Destroy the charge indicator image
+            Destroy(chargeIndicator);
+
+            // Set the flag to indicate that the coroutine has finished running
+            isAttackRunning = false;
+
         }
     }
-
-
 
     private bool isCollidingWithPlayer = false;
 
@@ -244,18 +265,90 @@ public class BossController : MonoBehaviour
     {
         while (true)
         {
-            // Alternate between ranged and melee attacks
-            // Wait for a short period of time
-            StartCoroutine(MeleeAttack());
+            // Set the flag to indicate that the coroutine is running
+            isAttackRunning = true;
+
+            rb.velocity = Vector2.zero;
+
+            // Choose a random spot on the screen to shoot towards
+            Vector2 targetPosition = new Vector2(player.transform.position.x, player.transform.position.y);
+
+            // Calculate the direction to shoot towards the target position
+            Vector2 directionProjec = (targetPosition - (Vector2)transform.position).normalized;
+
+            // Shoot 4 projectiles in a circular pattern around the boss
+            for (int i = 0; i < 4; i++)
+            {
+                // Calculate the direction to shoot each projectile
+                float angle = i * 90f;
+                Vector2 rotatedDirection = Quaternion.Euler(0, 0, angle) * directionProjec;
+
+                // Instantiate a projectile and shoot it in the calculated direction
+                GameObject projectile = Instantiate(projectilePrefab, transform.position, Quaternion.identity);
+                projectile.GetComponent<Rigidbody2D>().velocity = rotatedDirection * 10f;
+
+                // Rotate the projectile to face the direction of its velocity
+                projectile.transform.rotation = Quaternion.LookRotation(Vector3.forward, projectile.GetComponent<Rigidbody2D>().velocity);
+            }
 
             yield return new WaitForSeconds(2f);
 
+            // Melee Attack
+            // Set the boss's color to flashing red
+            bossRenderer.material.color = Color.red;
 
-            StartCoroutine(RangedAttack());
-            yield return new WaitForSeconds(2f);
+            // Get the position of the player
+            Vector3 playerPos = player.transform.position;
 
+            // Spawn the charge indicator image at the player's position
+            GameObject chargeIndicator = Instantiate(chargeIndicatorPrefab, playerPos, Quaternion.identity);
+
+            // Charge towards the player's position
+            Vector2 direction = (playerPos - transform.position).normalized;
+            rb.velocity = direction * chargeSpeed;
+
+            // Play the charging sound
+            audioSource.PlayOneShot(chargingSound);
+
+            // Save the start time
+            float startTime = Time.time;
+
+            // Wait until the boss has reached the player's position
+            yield return new WaitUntil(() => Vector2.Distance(transform.position, playerPos) <= 0.1f || Time.time > startTime + 1f);
+
+            // Check if the boss collided with the player
+            if (isCollidingWithPlayer)
+            {
+                // Deal damage to the player
+                player.GetComponent<PlayerHealth>().SetHealth(meleeDamage);
+
+                // Knock back the player
+                player.GetComponent<Rigidbody2D>().AddForce(direction * knockbackForce, ForceMode2D.Impulse);
+
+                // If the timeout has been reached, stop the boss's movement
+                rb.velocity = Vector2.zero;
+            }     
+
+            else if(Time.time > startTime + 1f)
+            {
+                // If the timeout has been reached, stop the boss's movement
+                rb.velocity = Vector2.zero;
+            }
+
+            // Reset the boss's color to white
+            bossRenderer.material.color = Color.white;
+
+            // Wait for the cooldown before attacking again
+            yield return new WaitForSeconds(chargeCooldown);
+
+            // Destroy the charge indicator image
+            Destroy(chargeIndicator);
+
+            // Set the flag to indicate that the coroutine has finished running
+            isAttackRunning = false;
         }
     }
+
 
     public ParticleSystem projectileParticles; // Reference to the ParticleSystem component
 
@@ -291,5 +384,4 @@ public class BossController : MonoBehaviour
             isFlipped = true;
         }
     }
-
 }
