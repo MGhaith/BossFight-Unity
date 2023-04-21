@@ -35,6 +35,11 @@ public class PlayerHealth : MonoBehaviour
         if (hp <= 100f )
         {
 			hp += BonusHealth;
+			if (hp > 100f)
+			{
+				hp = 100f;
+			}
+
 		}
 	}
 	

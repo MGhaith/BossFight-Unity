@@ -214,4 +214,4 @@ MonoBehaviour:
   audioSource: {fileID: -6946448414748683481}
   audioClip: {fileID: 8300000, guid: 5ab8fc664ca4d604f820e255005a664a, type: 3}
   stationPos: {x: 0, y: -10, z: 1}
-  spawnInterval: 1
+  spawnInterval: 10

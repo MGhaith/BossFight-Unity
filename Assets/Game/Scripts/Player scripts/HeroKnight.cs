@@ -1,22 +1,24 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
-public class HeroKnight : MonoBehaviour {
+public class HeroKnight : MonoBehaviour
+{
 
-    [SerializeField] float      m_speed = 10.0f;
-    [SerializeField] float      m_rollForce = 12.0f;
-    [SerializeField] bool       m_noBlood = false;
+    [SerializeField] float m_speed = 10.0f;
+    [SerializeField] float m_rollForce = 12.0f;
+    [SerializeField] bool m_noBlood = false;
 
-    private Animator            m_animator;
-    private Rigidbody2D         m_body2d;
-    private bool                is_dead = false;
-    private bool                m_rolling = false;
-    private int                 m_facingDirection = 1;
-    private int                 m_currentAttack = 0;
-    private float               m_timeSinceAttack = 0.0f;
-    private float               m_delayToIdle = 0.0f;
-    private float               m_rollDuration = 8.0f / 14.0f;
-    private float               m_rollCurrentTime;
+    private Animator m_animator;
+    private Rigidbody2D m_body2d;
+    private bool is_dead = false;
+    private bool m_rolling = false;
+    private int m_facingDirection = 1;
+    private int m_currentAttack = 0;
+    private float m_timeSinceAttack = 0.0f;
+    private float m_delayToIdle = 0.0f;
+    private float m_rollDuration = 8.0f / 14.0f;
+    private float m_rollCurrentTime;
 
     float inputX, inputY;
 
@@ -27,30 +29,30 @@ public class HeroKnight : MonoBehaviour {
 
 
     // Use this for initialization
-    void Start ()
+    void Start()
     {
         m_animator = GetComponent<Animator>();
         m_body2d = GetComponent<Rigidbody2D>();
     }
 
     // Update is called once per frame
-    void Update ()
+    void Update()
     {
         // Increase timer that controls attack combo
         m_timeSinceAttack += Time.deltaTime;
 
         // Increase timer that checks roll duration
-        if(m_rolling)
+        if (m_rolling)
             m_rollCurrentTime += Time.deltaTime;
 
         // Disable rolling if timer extends duration
-        if(m_rollCurrentTime > m_rollDuration)
+        if (m_rollCurrentTime > m_rollDuration)
             m_rolling = false;
 
 
         // -- Handle input and movement --
-        if (!is_dead) 
-        { 
+        if (!is_dead)
+        {
             inputX = Input.GetAxis("Horizontal");
             inputY = Input.GetAxis("Vertical");
         }
@@ -61,7 +63,7 @@ public class HeroKnight : MonoBehaviour {
             GetComponent<SpriteRenderer>().flipX = false;
             m_facingDirection = 1;
         }
-            
+
         else if (inputX < 0)
         {
             GetComponent<SpriteRenderer>().flipX = true;
@@ -69,14 +71,14 @@ public class HeroKnight : MonoBehaviour {
         }
 
         // Move
-        if (!m_rolling && !is_dead) 
-        { 
+        if (!m_rolling && !is_dead)
+        {
             transform.position = transform.position + new Vector3(inputX * m_speed * Time.deltaTime, inputY * m_speed * Time.deltaTime, 0);
         }
 
         // -- Handle Animations --
         //Death
-        if (GetComponent<PlayerHealth>().GetHealth() == 0f && !is_dead )
+        if (GetComponent<PlayerHealth>().GetHealth() == 0f && !is_dead)
         {
             is_dead = true;
             m_animator.SetBool("noBlood", m_noBlood);
@@ -84,12 +86,11 @@ public class HeroKnight : MonoBehaviour {
 
             Instantiate(Grave, transform);
 
-            mainMenu.GetComponent<MainMenu>().EndGame();
-         
-        }
+            StartCoroutine(EndGameCoroutine());
+        }   
 
         //Attack
-        else if(Input.GetMouseButtonDown(0) && m_timeSinceAttack > 0.25f && !m_rolling  && !is_dead)
+        else if (Input.GetMouseButtonDown(0) && m_timeSinceAttack > 0.25f && !m_rolling && !is_dead)
         {
             AttackAndDealDamage();
         }
@@ -110,7 +111,7 @@ public class HeroKnight : MonoBehaviour {
             m_rolling = true;
             m_animator.SetTrigger("Roll");
             m_body2d.velocity = new Vector2(m_facingDirection * m_rollForce, m_body2d.velocity.y);
-           
+
         }
 
         //Run
@@ -126,9 +127,15 @@ public class HeroKnight : MonoBehaviour {
         {
             // Prevents flickering transitions to idle
             m_delayToIdle -= Time.deltaTime;
-                if(m_delayToIdle < 0 && !is_dead)
-                    m_animator.SetInteger("AnimState", 0);
+            if (m_delayToIdle < 0 && !is_dead)
+                m_animator.SetInteger("AnimState", 0);
         }
+    }
+
+    IEnumerator EndGameCoroutine()
+    {
+        yield return new WaitForSeconds(1f);
+        mainMenu.GetComponent<MainMenu>().EndGame();
     }
 
     // Attack and damage dealing
@@ -190,12 +197,12 @@ public class HeroKnight : MonoBehaviour {
     }
 
     //Hurt animation
-    public void DamageAnim() 
+    public void DamageAnim()
     {
         if (!is_dead)
         {
             m_animator.SetTrigger("Hurt");
-        } 
+        }
     }
 
 }
