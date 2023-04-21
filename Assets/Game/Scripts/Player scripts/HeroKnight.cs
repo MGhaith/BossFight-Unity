@@ -21,6 +21,7 @@ public class HeroKnight : MonoBehaviour {
     float inputX, inputY;
 
     public GameObject Grave;
+    public GameObject mainMenu;
     private GameObject m_bossInRange;
 
 
@@ -82,6 +83,9 @@ public class HeroKnight : MonoBehaviour {
             m_animator.SetTrigger("Death");
 
             Instantiate(Grave, transform);
+
+            mainMenu.GetComponent<MainMenu>().EndGame();
+         
         }
 
         //Attack
@@ -193,6 +197,7 @@ public class HeroKnight : MonoBehaviour {
             m_animator.SetTrigger("Hurt");
         } 
     }
+
 }
 
 

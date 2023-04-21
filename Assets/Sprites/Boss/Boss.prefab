@@ -112,7 +112,7 @@ MonoBehaviour:
   projectilePrefab: {fileID: 2712375141120464642, guid: 0fe59d7af4710f14a9183c112c2e8554, type: 3}
   timeInterval: 1
   chargeSpeed: 20
-  knockbackForce: 10
+  knockbackForce: 5
   meleeDamage: 10
   chargeCooldown: 2
   chargeIndicatorPrefab: {fileID: 2855644061704125982, guid: c2ac72c71201ca54990f4cd97f4a6e87, type: 3}
@@ -144,8 +144,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bossHealth: 1000
+  maxBossHealth: 1000
   audioSource: {fileID: -7597136535862818486}
   bossdeathSound: {fileID: 8300000, guid: bd8857660a16ba549b8cc522d93d9117, type: 3}
+  healthBar: {fileID: 5741804929716719672, guid: e37292b79db0f6b44a8cad1db18201c5, type: 3}
 --- !u!50 &2115491277292828897
 Rigidbody2D:
   serializedVersion: 4

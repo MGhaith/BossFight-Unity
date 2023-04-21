@@ -23,7 +23,8 @@ public class BossController : MonoBehaviour
     private float timer = 0f;
     public float timeInterval = 10f; // Interval to call the method
     private SpriteRenderer bossRenderer;
-    bool isAttackRunning = false;
+    bool isAltAttack = false;
+    bool isMeleeAttack = false;
 
 
     // Start is called before the first frame update
@@ -42,7 +43,7 @@ public class BossController : MonoBehaviour
     {
         LookAtPlayer();
 
-        if (!isAttackRunning)
+        if (!isMeleeAttack ^ !isAltAttack)
         {
 
             //Boss Mouvement towards the player
@@ -99,24 +100,27 @@ public class BossController : MonoBehaviour
                 break;
             case 2:
                 // Set up melee attack pattern for phase 2
-                if (!isAttackRunning) // Check if the coroutine is not already running
+                if (!isMeleeAttack) // Check if the coroutine is not already running
                 {
+                    StopAllCoroutines();
                     StartCoroutine(MeleeAttack());
-                    isAttackRunning = true; // Set the flag to indicate that the coroutine is running
+                    isMeleeAttack = true; // Set the flag to indicate that the coroutine is running
                 }
                 break;
             case 3:
                 // Set up melee attack pattern for phase 2
-                if (!isAttackRunning) // Check if the coroutine is not already running
+                if (!isAltAttack) // Check if the coroutine is not already running
                 {
+                    StopAllCoroutines();
                     // Set up alternating attack pattern for phase 3
                     StartCoroutine(AlternatingAttacks());
-                    isAttackRunning = true; // Set the flag to indicate that the coroutine is running
+                    isAltAttack = true; // Set the flag to indicate that the coroutine is running
                 }
                 break;
             case 4:
                 // Set up special attack pattern for phase 4
                 StopAllCoroutines();
+                transform.position.Set(0f, 0f, 1f);
                 projectileParticles.Play(); // Play the particle system
 
                 break;
@@ -161,7 +165,7 @@ public class BossController : MonoBehaviour
     // --Second Phase: charging attack--
 
     public int chargeSpeed = 10;
-    public int knockbackForce = 10;
+    public int knockbackForce = 5;
     public float meleeDamage = 10f;
     public float chargeCooldown;
     public GameObject chargeIndicatorPrefab;
@@ -174,7 +178,7 @@ public class BossController : MonoBehaviour
         while (true)
         {
             // Set the flag to indicate that the coroutine is running
-            isAttackRunning = true;
+            isMeleeAttack = true;
 
             // Set the boss's color to flashing red
             bossRenderer.material.color = Color.red;
@@ -199,27 +203,23 @@ public class BossController : MonoBehaviour
             // Wait until the boss has reached the player's position
             yield return new WaitUntil(() => Vector2.Distance(transform.position, playerPos) <= 0.1f || Time.time > startTime + 1f);
 
-            if (Time.time > startTime + 1f)
+            // Check if the boss collided with the player
+            if (isCollidingWithPlayer)
             {
+                // Deal damage to the player
+                player.GetComponent<PlayerHealth>().SetHealth(meleeDamage);
+
+                // Knock back the player
+                player.GetComponent<Rigidbody2D>().AddForce(direction * knockbackForce, ForceMode2D.Impulse);
+
                 // If the timeout has been reached, stop the boss's movement
                 rb.velocity = Vector2.zero;
             }
 
-            else
+            else if (Time.time > startTime + 1f)
             {
-                // Check if the boss collided with the player
-                if (isCollidingWithPlayer)
-                {
-                    // Deal damage to the player
-                    player.GetComponent<PlayerHealth>().SetHealth(meleeDamage);
-
-                    // Knock back the player
-                    player.GetComponent<Rigidbody2D>().AddForce(direction * knockbackForce, ForceMode2D.Impulse);
-                }
-
                 // If the timeout has been reached, stop the boss's movement
                 rb.velocity = Vector2.zero;
-
             }
 
             // Reset the boss's color to white
@@ -233,7 +233,7 @@ public class BossController : MonoBehaviour
             Destroy(chargeIndicator);
 
             // Set the flag to indicate that the coroutine has finished running
-            isAttackRunning = false;
+            isMeleeAttack = false;
 
         }
     }
@@ -266,7 +266,7 @@ public class BossController : MonoBehaviour
         while (true)
         {
             // Set the flag to indicate that the coroutine is running
-            isAttackRunning = true;
+            isAltAttack = true;
 
             rb.velocity = Vector2.zero;
 
@@ -322,9 +322,6 @@ public class BossController : MonoBehaviour
                 // Deal damage to the player
                 player.GetComponent<PlayerHealth>().SetHealth(meleeDamage);
 
-                // Knock back the player
-                player.GetComponent<Rigidbody2D>().AddForce(direction * knockbackForce, ForceMode2D.Impulse);
-
                 // If the timeout has been reached, stop the boss's movement
                 rb.velocity = Vector2.zero;
             }     
@@ -334,6 +331,9 @@ public class BossController : MonoBehaviour
                 // If the timeout has been reached, stop the boss's movement
                 rb.velocity = Vector2.zero;
             }
+
+            // Knock back the player
+            player.GetComponent<Rigidbody2D>().AddForce(direction * knockbackForce, ForceMode2D.Impulse);
 
             // Reset the boss's color to white
             bossRenderer.material.color = Color.white;
@@ -345,7 +345,7 @@ public class BossController : MonoBehaviour
             Destroy(chargeIndicator);
 
             // Set the flag to indicate that the coroutine has finished running
-            isAttackRunning = false;
+            isAltAttack = false;
         }
     }
 

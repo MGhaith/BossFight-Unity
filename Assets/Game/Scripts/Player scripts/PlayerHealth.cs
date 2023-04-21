@@ -32,7 +32,7 @@ public class PlayerHealth : MonoBehaviour
 	// Add Health
 	public void AddHealth(float BonusHealth)
 	{
-        if (hp <= 1000 )
+        if (hp <= 100f )
         {
 			hp += BonusHealth;
 		}
