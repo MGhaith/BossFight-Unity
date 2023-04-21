@@ -23,8 +23,9 @@ public class BossController : MonoBehaviour
     private float timer = 0f;
     public float timeInterval = 10f; // Interval to call the method
     private SpriteRenderer bossRenderer;
-    bool isAltAttack = false;
     bool isMeleeAttack = false;
+    bool isAltAttack = false;
+
 
 
     // Start is called before the first frame update
@@ -43,21 +44,7 @@ public class BossController : MonoBehaviour
     {
         LookAtPlayer();
 
-        if (!isMeleeAttack ^ !isAltAttack)
-        {
-
-            //Boss Mouvement towards the player
-            // Calculate the direction towards the player
-            Vector2 direction = (player.transform.position - transform.position).normalized;
-
-            // Apply a force towards the player
-            rb.AddForce(direction * movementSpeed);
-
-            // Clamp the speed so the boss doesn't move too fast
-            rb.velocity = Vector2.ClampMagnitude(rb.velocity, movementSpeed);
-        }
-
-
+        
         if (APhase == BossAttackPhase.Phase1)
         {
             // First Phase of the boss attack
@@ -77,13 +64,14 @@ public class BossController : MonoBehaviour
         else if (APhase == BossAttackPhase.Phase3)
         {
             // third phase of boss attack
+            isMeleeAttack = false;
             StartPhase(3);
 
         }
         else if (APhase == BossAttackPhase.Phase4)
         {
             // last phase of boss attack
-
+            isAltAttack = false;
             StartPhase(4);
         }
 
@@ -104,7 +92,7 @@ public class BossController : MonoBehaviour
                 {
                     StopAllCoroutines();
                     StartCoroutine(MeleeAttack());
-                    isMeleeAttack = true; // Set the flag to indicate that the coroutine is running
+
                 }
                 break;
             case 3:
@@ -114,7 +102,6 @@ public class BossController : MonoBehaviour
                     StopAllCoroutines();
                     // Set up alternating attack pattern for phase 3
                     StartCoroutine(AlternatingAttacks());
-                    isAltAttack = true; // Set the flag to indicate that the coroutine is running
                 }
                 break;
             case 4:
