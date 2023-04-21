@@ -107,7 +107,7 @@ public class BossController : MonoBehaviour
             case 4:
                 // Set up special attack pattern for phase 4
                 StopAllCoroutines();
-                transform.position.Set(0f, 0f, 1f);
+                transform.position = new Vector3(0f, 0f, 0f);
                 projectileParticles.Play(); // Play the particle system
 
                 break;

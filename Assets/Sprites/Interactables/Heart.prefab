@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 5573597461497028392}
   m_Layer: 0
   m_Name: Heart
-  m_TagString: Untagged
+  m_TagString: HealthSpawn
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -213,3 +213,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   audioSource: {fileID: -6946448414748683481}
   audioClip: {fileID: 8300000, guid: 5ab8fc664ca4d604f820e255005a664a, type: 3}
+  stationPos: {x: 0, y: -10, z: 1}
+  spawnInterval: 1

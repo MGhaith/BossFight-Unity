@@ -1,22 +1,30 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class HeartScript : MonoBehaviour
 {
     public AudioSource audioSource; // assign in the Inspector
     public AudioClip audioClip; // assign in the Inspector
+    public Vector3 stationPos;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public float spawnInterval = 10f; // The time interval between each heart spawn
+    private float timeSinceLastSpawn = 0f; // The time since the last heart spawn
 
     // Update is called once per frame
-    void Update()
+    public void SpawnHeart()
     {
-        
+        // Increment the time since the last spawn
+        timeSinceLastSpawn += Time.deltaTime;
+
+        // Check if it's time to spawn a heart
+        if (timeSinceLastSpawn >= spawnInterval)
+        {
+            // Reset the time since the last spawn
+            timeSinceLastSpawn = 0f;
+
+            // Spawn a new heart prefab at the player's position
+            Instantiate(this.gameObject, stationPos, Quaternion.identity);
+        }
+
     }
 
     private bool hasTriggered = false;

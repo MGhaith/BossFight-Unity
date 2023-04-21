@@ -1763,6 +1763,7 @@ MonoBehaviour:
   Boss: {fileID: 4822676833477240337, guid: 996f7e1794c748f4480e8ced36da9655, type: 3}
   mainMenu: {fileID: 701988423}
   bossBar: {fileID: 1771989953}
+  heartPref: {fileID: 9174952533181125219, guid: cbe90e4d63da2df42986823a0242d5bb, type: 3}
 --- !u!1001 &963302927
 PrefabInstance:
   m_ObjectHideFlags: 0
