@@ -9,6 +9,7 @@ TagManager:
   - HManager
   - HVManager
   - ag
+  - target
   layers:
   - Default
   - TransparentFX

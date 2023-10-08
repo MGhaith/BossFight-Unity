@@ -173,6 +173,17 @@ public class BossController : MonoBehaviour
             // Get the position of the player
             Vector3 playerPos = player.transform.position;
 
+            //check if there is any non-destroyed charge indicators
+            GameObject[] Junk = GameObject.FindGameObjectsWithTag("target");
+
+            if (Junk.Length != 0)
+            {
+                foreach (GameObject c in Junk)
+                {
+                    Destroy(c);
+                }
+            }
+
             // Spawn the charge indicator image at the player's position
             GameObject chargeIndicator = Instantiate(chargeIndicatorPrefab, playerPos, Quaternion.identity);
 
@@ -286,6 +297,17 @@ public class BossController : MonoBehaviour
 
             // Get the position of the player
             Vector3 playerPos = player.transform.position;
+
+            //check if there is any non-destroyed charge indicators
+            GameObject[] Junk = GameObject.FindGameObjectsWithTag("target");
+
+            if (Junk.Length != 0)
+            {
+                foreach (GameObject c in Junk)
+                {
+                    Destroy(c);
+                }
+            }
 
             // Spawn the charge indicator image at the player's position
             GameObject chargeIndicator = Instantiate(chargeIndicatorPrefab, playerPos, Quaternion.identity);
